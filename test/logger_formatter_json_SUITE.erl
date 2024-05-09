@@ -95,7 +95,7 @@ unstructured(_) ->
   ),
   ?assertEqual(
     <<
-      "{\"msg\":\"GET /phoenix/live_reload/socket/websocket - Sent 404 in 793\\u00B5s\",\"level\":\"info\"}\n"
+      "{\"msg\":\"GET \\/phoenix\\/live_reload\\/socket\\/websocket - Sent 404 in 793\\u00B5s\",\"level\":\"info\"}\n"
     >>,
     iolist_to_binary(
       logger_formatter_json:format(

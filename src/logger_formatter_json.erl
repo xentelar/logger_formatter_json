@@ -54,7 +54,7 @@ when is_map(V) ->
   Template = lists:dropwhile(fun (msg) -> true; (_) -> false end, Template0),
   Result0 = [do_format(Level, maps:merge(Meta, V), Template, [], Config)],
   Result = lists:flatten(Result0),
-  [thoas:encode_to_iodata(Result, #{escape => unicode}), "\n"];
+  [jiffy:encode({Result}, [uescape, escape_forward_slashes]), "\n"];
 
 format(#{level := Level, msg := Msg, meta := Meta}, Config0) when is_map(Config0) ->
   Config = add_default_config(Config0),
@@ -62,7 +62,7 @@ format(#{level := Level, msg := Msg, meta := Meta}, Config0) when is_map(Config0
   Result0 =
     [do_format(Level, maps:put(msg, format_msg(Msg, Meta, Config), Meta), Template, [], Config)],
   Result = lists:flatten(Result0),
-  [thoas:encode_to_iodata(Result, #{escape => unicode}), "\n"].
+  [jiffy:encode({Result}, [uescape, escape_forward_slashes]), "\n"].
 
 
 % @doc Map metadata key to JSON output name
@@ -119,8 +119,8 @@ do_format(Level, Data, [{Key, IfExist, Else} | Format], Seen, Config) ->
     String -> [{map_name(Key, Config), String} | do_format(Level, Data, Format, Seen, Config)]
   end;
 
-do_format(Level, Data, [Key | Format], Seen, Config)
-when is_atom(Key) orelse is_list(Key) andalso is_atom(hd(Key)) ->
+do_format(Level, Data, [Key | Format], Seen, Config) 
+    when is_atom(Key) orelse is_list(Key) andalso is_atom(hd(Key)) ->
   String0 =
     case value(Key, Data) of
       {ok, Value} -> to_output(map_type(Key, Config), Value, Config);
@@ -135,7 +135,8 @@ when is_atom(Key) orelse is_list(Key) andalso is_atom(hd(Key)) ->
 
 % do_format(Level,Data,[Str|Format],Config) ->
 %     [Str|do_format(Level,Data,Format,Config)];
-do_format(_Level, _Data, [], _Seen, _Config) -> [].
+do_format(_Level, _Data, [], _Seen, _Config) -> 
+  [].
 
 
 value(Key, Meta) when is_map_key(Key, Meta) -> {ok, maps:get(Key, Meta)};
@@ -143,7 +144,7 @@ value([Key | Keys], Meta) when is_map_key(Key, Meta) -> value(Keys, maps:get(Key
 value([], Value) -> {ok, Value};
 value(_, _) -> error.
 
-to_output(_Key, Value, _Config) when is_map(Value) -> maps:to_list(Value);
+to_output(_Key, Value, _Config) when is_map(Value) -> {maps:to_list(Value)};
 to_output(Key, Value, Config) -> iolist_to_binary(to_string(Key, Value, Config)).
 
 to_string({level, OutputFormat}, Value, Config) -> format_level(OutputFormat, Value, Config);
@@ -196,11 +197,13 @@ is_printable(X) when is_binary(X) ->
   | map() when Msg :: {io:format(), [term()]}
   | {report, logger:report()}
   | {string, unicode:chardata()} , Meta :: logger:metadata() , Config :: config().
-format_msg({string, Chardata}, Meta, Config) -> format_msg({"~ts", [Chardata]}, Meta, Config);
-format_msg({report, Report}, _Meta, _Config) when is_map(Report) -> Report;
+format_msg({string, Chardata}, Meta, Config) -> 
+  format_msg({"~ts", [Chardata]}, Meta, Config);
 
-format_msg({report, _} = Msg, Meta, #{report_cb := Fun} = Config)
-when is_function(Fun, 1); is_function(Fun, 2) ->
+format_msg({report, Report}, _Meta, _Config) when is_map(Report) -> 
+  Report;
+
+format_msg({report, _} = Msg, Meta, #{report_cb := Fun} = Config) when is_function(Fun, 1); is_function(Fun, 2) ->
   format_msg(Msg, Meta#{report_cb => Fun}, maps:remove(report_cb, Config));
 
 format_msg({report, Report}, #{report_cb := Fun} = Meta, Config) when is_function(Fun, 1) ->
@@ -325,7 +328,7 @@ format_level(gcp, alert, _Config) -> <<"ALERT">>;
 format_level(gcp, critical, _Config) -> <<"CRITICAL">>;
 format_level(gcp, error, _Config) -> <<"ERROR">>;
 format_level(gcp, warning, _Config) -> <<"WARNING">>;
-format_level(gcp, notice, _Config) -> <<"INFO">>;
+format_level(gcp, notice, _Config) -> <<"NOTICE">>;
 format_level(gcp, info, _Config) -> <<"INFO">>;
 format_level(gcp, debug, _Config) -> <<"DEBUG">>;
 format_level(gcp, _, _Config) -> <<"DEFAULT">>.
