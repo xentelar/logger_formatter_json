@@ -183,6 +183,16 @@ duplicate_keys(_) ->
 
 
 structured(_) ->
+  Pid = self(),
+  ?assertEqual(
+    <<"{\"msg\":{\"id\":[\"pipe\",\"worker\",\"2\"],\"pid\":[60,48,46,52,57,53,46,48,62],\"reason\":\"normal\",\"self\":[60,48,46,52,57,53,46,48,62],\"what\":[108,97,115,116,32,110,111,100,101,32,116,101,114,109,105,110,97,116,101,100,59,32,112,105,112,101,32,112,114,111,99,101,115,115,32,101,120,105,116,105,110,103]},\"level\":\"info\"}\n">>,
+    iolist_to_binary(
+      logger_formatter_json:format(
+        #{level => info, msg => {report,#{id => [pipe,worker,'2'],pid => Pid,reason => normal,self => Pid,what => "last node terminated; pipe process exiting"}}, meta => #{}},
+        #{}
+      )
+    )
+  ),
   ?assertEqual(
     <<"{\"msg\":{\"hi\":\"there\"},\"level\":\"info\"}\n">>,
     iolist_to_binary(

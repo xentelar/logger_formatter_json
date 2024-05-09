@@ -144,7 +144,12 @@ value([Key | Keys], Meta) when is_map_key(Key, Meta) -> value(Keys, maps:get(Key
 value([], Value) -> {ok, Value};
 value(_, _) -> error.
 
-to_output(_Key, Value, _Config) when is_map(Value) -> {maps:to_list(Value)};
+to_output(_Key, Value, _Config) when is_map(Value) -> 
+  Fun = fun(_K0, V0) when is_pid(V0) -> pid_to_list(V0);
+           (_K1, V1) -> V1
+    end,
+  Value0 = maps:map(Fun, Value),
+  {maps:to_list(Value0)};
 to_output(Key, Value, Config) -> iolist_to_binary(to_string(Key, Value, Config)).
 
 to_string({level, OutputFormat}, Value, Config) -> format_level(OutputFormat, Value, Config);
