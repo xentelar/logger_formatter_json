@@ -183,22 +183,31 @@ duplicate_keys(_) ->
 
 
 structured(_) ->
-  Pid = self(),
+  %Pid = self(),
   %Fun = fun() -> #{} end,
   ?assertEqual(
-    <<"{\"msg\":{\"id\":[\"pipe\",\"worker\",\"2\"],\"pid\":[60,48,46,52,57,53,46,48,62],\"reason\":\"normal\",\"self\":[60,48,46,52,57,53,46,48,62],\"what\":[108,97,115,116,32,110,111,100,101,32,116,101,114,109,105,110,97,116,101,100,59,32,112,105,112,101,32,112,114,111,99,101,115,115,32,101,120,105,116,105,110,103]},\"level\":\"info\"}\n">>,
+    <<"{\"msg\":{\"id\":[[91,[[112,105,112,101],44,[119,111,114,107,101,114],44,[39,50,39]],93]],\"pid\":\"pid\",\"reason\":\"normal\",\"self\":\"pid\",\"what\":[108,97,115,116,32,110,111,100,101,32,116,101,114,109,105,110,97,116,101,100,59,32,112,105,112,101,32,112,114,111,99,101,115,115,32,101,120,105,116,105,110,103]},\"level\":\"info\"}\n">>,
     iolist_to_binary(
       logger_formatter_json:format(
-        #{level => info, msg => {report,#{id => [pipe,worker,'2'],pid => Pid,reason => normal,self => Pid,what => "last node terminated; pipe process exiting"}}, meta => #{}},
+        #{level => info, msg => {report,#{id => [pipe,worker,'2'],pid => <<"pid">>,reason => normal,self => <<"pid">>,what => "last node terminated; pipe process exiting"}}, meta => #{}},
         #{}
       )
     )
   ),
   ?assertEqual(
-    <<"{\"msg\":{\"pid\":[60,48,46,52,57,53,46,48,62],\"what\":[83,116,97,114,116,105,110,103,32,115,101,114,118,101,114,95,103,101,110,32,112,114,111,99,101,115,115],\"initial_data\":\"{init_data,[server_pipe,replication_worker,'0','0'],server_gen_map,{server_gen_map,<0.495.0>},infinity,1}\"},\"level\":\"info\"}\n">>,
+    <<"{\"msg\":{\"pid\":\"pid\",\"what\":[83,116,97,114,116,105,110,103,32,115,101,114,118,101,114,95,103,101,110,32,112,114,111,99,101,115,115],\"initial_data\":[[123,[[105,110,105,116,95,100,97,116,97],44,[91,[[115,101,114,118,101,114,95,112,105,112,101],44,[114,101,112,108,105,99,97,116,105,111,110,95,119,111,114,107,101,114],44,[39,48,39],44,[39,48,39]],93],44,[115,101,114,118,101,114,95,103,101,110,95,109,97,112],44,[123,[[115,101,114,118,101,114,95,103,101,110,95,109,97,112],44,[60,60,[34,112,105,100,34],62,62]],125],44,[105,110,102,105,110,105,116,121],44,[49]],125]]},\"level\":\"info\"}\n">>,
     iolist_to_binary(
       logger_formatter_json:format(
-        #{level => info, msg => {report,#{pid => Pid,what => "Starting server_gen process",initial_data => {init_data,[server_pipe,replication_worker,'0','0'],server_gen_map,{server_gen_map,Pid},infinity,1}}}, meta => #{}},
+        #{level => info, msg => {report,#{pid => <<"pid">>,what => "Starting server_gen process",initial_data => {init_data,[server_pipe,replication_worker,'0','0'],server_gen_map,{server_gen_map,<<"pid">>},infinity,1}}}, meta => #{}},
+        #{}
+      )
+    )
+  ),
+  ?assertEqual(
+    <<"{\"msg\":{\"label\":[[123,[[97,112,112,108,105,99,97,116,105,111,110,95,99,111,110,116,114,111,108,108,101,114],44,[112,114,111,103,114,101,115,115]],125]],\"report\":[[91,[[123,[[97,112,112,108,105,99,97,116,105,111,110],44,[115,97,115,108]],125],44,[123,[[115,116,97,114,116,101,100,95,97,116],44,[110,111,110,111,100,101,64,110,111,104,111,115,116]],125]],93]]},\"level\":\"info\"}\n">>,
+    iolist_to_binary(
+      logger_formatter_json:format(
+        #{level => info, msg => {report,#{label => {application_controller,progress},report => [{application,sasl},{started_at,nonode@nohost}]}}, meta => #{}},
         #{}
       )
     )
