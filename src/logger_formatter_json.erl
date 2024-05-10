@@ -144,9 +144,11 @@ value([Key | Keys], Meta) when is_map_key(Key, Meta) -> value(Keys, maps:get(Key
 value([], Value) -> {ok, Value};
 value(_, _) -> error.
 
-to_output(_Key, Value, _Config) when is_map(Value) -> 
+to_output(_Key, Value, Config) when is_map(Value) -> 
   Fun = fun(_K0, V0) when is_pid(V0) -> pid_to_list(V0);
-           (_K1, V1) -> V1
+           (_K1, V1) when is_reference(V1) -> ref_to_list(V1);
+           (_K2, V2) when is_tuple(V2) -> to_string(V2, Config);
+           (_K22, V22) -> V22
     end,
   Value0 = maps:map(Fun, Value),
   {maps:to_list(Value0)};
@@ -180,7 +182,10 @@ to_string(X, Config) when is_binary(X) ->
     _ -> io_lib:format(p(Config), [X])
   end;
 
-to_string(X, Config) -> io_lib:format(p(Config), [X]).
+to_string(X, Config) -> 
+  R = io_lib:format(p(Config), [X]),
+  T = lists:flatten(R),
+  list_to_binary(T).
 
 
 -spec printable_list(list()) -> boolean().
